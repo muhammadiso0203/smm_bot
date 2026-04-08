@@ -35,11 +35,24 @@ function saveData(data) {
     fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
 }
 
-// Userni statistikaga qo'shish
-function trackUser(chatId) {
+// Userni statistikaga qo'shish (ID va Username bilan)
+function trackUser(chatId, username) {
     const data = getData();
-    if (!data.users.includes(chatId)) {
-        data.users.push(chatId);
+    // Foydalanuvchi ob'ektini qidiramiz
+    const userIndex = data.users.findIndex(u => (typeof u === 'object' ? u.id : u) === chatId);
+    
+    const userData = {
+        id: chatId,
+        username: username ? `@${username}` : 'username yo\'q'
+    };
+
+    if (userIndex === -1) {
+        // Yangi foydalanuvchi
+        data.users.push(userData);
+        saveData(data);
+    } else if (typeof data.users[userIndex] !== 'object') {
+        // Eski formatdagi foydalanuvchini yangilash
+        data.users[userIndex] = userData;
         saveData(data);
     }
 }
@@ -142,7 +155,7 @@ function getMainMenu() {
 
 // /start komandasi
 bot.start((ctx) => {
-    trackUser(ctx.chat.id);
+    trackUser(ctx.chat.id, ctx.from.username);
     ctx.reply(`Assalomu alaykum, ${ctx.from.first_name}! SMM Botimizga xush kelibsiz.`, getMainMenu());
 });
 
@@ -201,8 +214,11 @@ bot.hears('👥 Foydalanuvchilar', (ctx) => {
         
         // Oxirgi 20 ta foydalanuvchini ko'rsatish
         const recentUsers = data.users.slice(-20).reverse();
-        recentUsers.forEach((userId, index) => {
-            userList += `${index + 1}. Username: @${ctx.from.username}\n`;
+        recentUsers.forEach((user, index) => {
+            const displayInfo = typeof user === 'object' 
+                ? `${user.username} (ID: ${user.id})` 
+                : `ID: ${user} (eski foydalanuvchi)`;
+            userList += `${index + 1}. ${displayInfo}\n`;
         });
 
         ctx.reply(userList || 'Foydalanuvchilar hali yo\'q.');
