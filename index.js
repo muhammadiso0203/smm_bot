@@ -202,7 +202,7 @@ bot.hears('👥 Foydalanuvchilar', (ctx) => {
         // Oxirgi 20 ta foydalanuvchini ko'rsatish
         const recentUsers = data.users.slice(-20).reverse();
         recentUsers.forEach((userId, index) => {
-            userList += `${index + 1}. ID: ${userId}\n`;
+            userList += `${index + 1}. Username: @${ctx.from.username}\n`;
         });
 
         ctx.reply(userList || 'Foydalanuvchilar hali yo\'q.');
